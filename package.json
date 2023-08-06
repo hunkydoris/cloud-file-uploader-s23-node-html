@@ -1,0 +1,45 @@
+{
+	"name": "file-uploader",
+	"version": "1.0.0",
+	"description": "upload file to s3 bucket and send email via lambda using ses",
+	"main": "build/index",
+	"scripts": {
+		"build": "rm -r ./build && tsc",
+		"postinstall": "npx prisma generate",
+		"start": "nodemon"
+	},
+	"dependencies": {
+		"@aws-sdk/client-s3": "^3.379.1",
+		"@aws-sdk/s3-request-presigner": "^3.379.1",
+		"@prisma/client": "5.0.0",
+		"aws-sdk": "^2.1095.0",
+		"axios": "^1.4.0",
+		"bcrypt": "^5.1.0",
+		"cookie-parser": "^1.4.6",
+		"cors": "^2.8.5",
+		"dotenv": "^16.0.0",
+		"express": "^4.17.3",
+		"express-session": "^1.17.3",
+		"mime-types": "^2.1.35",
+		"uuid": "^9.0.0"
+	},
+	"devDependencies": {
+		"@types/bcrypt": "^5.0.0",
+		"@types/cookie-parser": "^1.4.3",
+		"@types/cors": "^2.8.12",
+		"@types/express": "^4.17.13",
+		"@types/express-session": "^1.17.7",
+		"@types/mime-types": "^2.1.1",
+		"@types/node": "^17.0.21",
+		"@types/uuid": "^9.0.2",
+		"nodemon": "^2.0.15",
+		"prisma": "5.0.0",
+		"ts-node": "^10.7.0",
+		"tsconfig-paths": "^4.2.0",
+		"tsx": "^3.12.7",
+		"typescript": "^4.6.2"
+	},
+	"prisma": {
+		"seed": "tsx prisma/seed.ts"
+	}
+}

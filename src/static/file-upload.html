@@ -1,0 +1,142 @@
+<html>
+	<body>
+		<div style="display: flex; flex-direction: column; gap: 1rem">
+			<div
+				style="
+					margin-left: auto;
+					margin-right: auto;
+					max-width: 58rem;
+					padding: 1rem;
+				"
+			>
+				<div style="margin-top: 2rem">
+					<form
+						method="post"
+						id="upload-form"
+						style="margin-top: 2rem; max-width: 58rem"
+					>
+						<fieldset
+							id="upload-fieldset"
+							style="display: flex; flex-direction: column; gap: 1rem"
+						>
+							<input name="file" type="file" id="file-upload" />
+							<input name="email" type="email" placeholder="Enter email" />
+							<input name="email" type="email" placeholder="Enter email" />
+							<input name="email" type="email" placeholder="Enter email" />
+							<input name="email" type="email" placeholder="Enter email" />
+							<input name="email" type="email" placeholder="Enter email" />
+							<div
+								style="
+									margin-top: 1rem;
+									display: flex;
+									align-items: center;
+									justify-content: space-between;
+									gap: 1rem;
+								"
+							>
+								<button type="button" id="logout-btn">Logout</button>
+
+								<button type="submit" id="submit-btn" disabled>
+									Send Email
+								</button>
+							</div>
+						</fieldset>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			document.getElementById('logout-btn').addEventListener('click', () => {
+				fetch('/auth/logout', {
+					method: 'POST',
+				})
+					.then(response => response.json())
+					.then(data => {
+						if (data.success) {
+							window.location.href = '/login'
+						}
+					})
+					.catch(error => {
+						console.log('Error: ', error)
+					})
+			})
+
+			document.getElementById('file-upload').addEventListener('change', () => {
+				document.getElementById('submit-btn').disabled = false
+			})
+
+			document
+				.getElementById('upload-form')
+				.addEventListener('submit', async event => {
+					event.preventDefault()
+					const formData = new FormData(event.target)
+
+					const emails = formData
+						.getAll('email')
+						?.map(email => email.toString().trim().toLowerCase())
+						.filter(Boolean)
+
+					if (!emails.length) {
+						alert('Please enter atleast one email')
+						return
+					}
+
+					// check the file is not empty
+					if (!event.target.file.value) {
+						alert('Please select a file')
+						return
+					}
+
+					const file = event.target.file.files[0]
+					const fileType = file.type
+
+					const key = encodeURIComponent(
+						`${Date.now()}-${file.name.replace(/ /g, '_')}`
+					)
+
+					const s3PresignedUrlResponse = await fetch(
+						`/s3/getPresignedUrl?key=${key}`,
+						{
+							method: 'GET',
+						}
+					)
+
+					const {url: uploadUrl} = await s3PresignedUrlResponse.json()
+
+					const response = await fetch(uploadUrl, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': fileType,
+						},
+						body: file,
+					})
+					if (!response.ok) {
+						alert('File upload failed')
+						return
+					}
+
+					const finalUrl = `https://cloudsharingbucket1234.s3.us-west-2.amazonaws.com/${key}`
+
+					alert('File uploaded successfully')
+
+					await fetch('/create-file', {
+						method: 'POST',
+						body: JSON.stringify({
+							emails,
+							url: finalUrl,
+						}),
+						headers: {
+							'Content-Type': 'application/json',
+						},
+					})
+						.then(response => response.json())
+						.then(data => {
+							if (data.success) {
+								alert('Email sent successfully')
+							}
+						})
+				})
+		</script>
+	</body>
+</html>
